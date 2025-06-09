@@ -1,0 +1,8 @@
+#python-dotenv
+#openai
+chromadb ##Vector database
+sentence-transformers # used for local embeddings
+# transformers torch
+
+# transformers sentencepiece
+flask

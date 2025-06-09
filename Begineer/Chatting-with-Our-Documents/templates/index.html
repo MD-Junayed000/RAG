@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Summarized RAG Q&A Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+        }
+        body.dark {
+            --bg-color: #121212;
+            --text-color: #ffffff;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #f1f1f1;
+            padding: 20px;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
+        }
+        body.dark .sidebar {
+            background-color: #1e1e1e;
+            border-color: #444;
+        }
+        .main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .chatbox {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 20px;
+            background: #fff;
+            max-height: 50vh;
+        }
+        body.dark .chatbox {
+            background: #222;
+            border-color: #444;
+        }
+        .chat-entry {
+            margin-bottom: 1em;
+        }
+        .chat-entry.user {
+            text-align: right;
+        }
+        .chat-entry.bot {
+            text-align: left;
+            color: var(--text-color);
+        }
+        .timestamp {
+            font-size: 0.7em;
+            color: gray;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        textarea, select, input[type="file"] {
+            width: 100%;
+        }
+        .form-actions button {
+            margin-top: 10px;
+        }
+        .theme-toggle {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Topics</h3>
+        <form method="POST">
+            <select name="topic" onchange="this.form.submit()">
+                <option value="">-- Select a topic --</option>
+                {% for topic in topics %}
+                    <option value="{{ topic }}" {% if topic == selected %}selected{% endif %}>{{ topic }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <h4 style="margin-top:30px;">Upload Document</h4>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".txt" required><br>
+            <button type="submit">Upload & Reindex</button>
+        </form>
+
+        <form action="/reindex" method="post" style="margin-top:10px;">
+            <button type="submit">Reindex All</button>
+        </form>
+
+        <form action="/delete" method="post" style="margin-top:10px;">
+            <select name="file_to_delete">
+                {% for f in files %}
+                    <option value="{{ f }}">{{ f }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Delete File</button>
+        </form>
+
+        <div class="theme-toggle">
+            <button onclick="toggleTheme()">🌓 Toggle Theme</button>
+        </div>
+    </div>
+
+    <div class="main">
+        <div>
+            <h1> Summarized RAG Q&A Chatbot</h1>
+            <p>Ask questions about your documents.</p>
+        </div>
+        <div class="chatbox" id="chatbox">
+            {% if question %}
+            <div class="chat-entry user">
+                <div><strong>You:</strong> {{ question }}</div>
+                <div class="timestamp">{{ timestamp }}</div>
+            </div>
+            {% endif %}
+            {% if answer %}
+            <div class="chat-entry bot">
+                <div><strong>AI:</strong> {{ answer }}</div>
+                <div class="timestamp">{{ timestamp }}</div>
+            </div>
+            {% endif %}
+            {% if sources %}
+                <div class="chat-entry bot">
+                    <strong>Sources: most relevant chunks </strong>
+                    <ul>
+                        {% for src in sources %}
+                            <li style="font-size: 0.9em; color: gray;">{{ src }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+
+        <form method="POST">
+            <div class="form-group">
+                <label>Ask anything:</label>
+                <textarea name="question" rows="2" placeholder="Type your question..."></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="submit">Ask</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle("dark");
+        }
+    </script>
+</body>
+</html>
